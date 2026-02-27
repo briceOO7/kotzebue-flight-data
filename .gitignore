@@ -20,8 +20,10 @@ wheels/
 *.egg
 
 # Data files
-data/
-*.csv
+data/*.csv
+data/*_processed_*.csv
+!data/sample_bts_data.csv
+!data/README.md
 
 # Environment
 .env
