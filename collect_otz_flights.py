@@ -7,15 +7,17 @@ using the OpenSky Network API.
 import os
 import time
 from datetime import datetime, timedelta
-from typing import Optional
+from typing import Optional, List, Dict, Any
 import pandas as pd
-from opensky_api import OpenSkyApi
+import requests
+from requests.auth import HTTPBasicAuth
 
 
 class OTZFlightCollector:
     """Collector for flight data to Kotzebue Airport (PAOT)."""
     
     AIRPORT_ICAO = "PAOT"
+    BASE_URL = "https://opensky-network.org/api"
     
     def __init__(self, username: Optional[str] = None, password: Optional[str] = None):
         """
@@ -25,9 +27,38 @@ class OTZFlightCollector:
             username: OpenSky username (optional, for higher rate limits)
             password: OpenSky password (optional)
         """
-        self.api = OpenSkyApi(username, password)
+        self.username = username
+        self.password = password
+        self.auth = HTTPBasicAuth(username, password) if username else None
         self.is_authenticated = username is not None
         self.delay_seconds = 1 if self.is_authenticated else 10
+    
+    def _get_arrivals(self, airport: str, begin: int, end: int) -> List[Dict[str, Any]]:
+        """
+        Call the OpenSky API to get arrivals for an airport.
+        
+        Args:
+            airport: ICAO airport code
+            begin: Start timestamp (Unix time)
+            end: End timestamp (Unix time)
+            
+        Returns:
+            List of flight dictionaries
+        """
+        url = f"{self.BASE_URL}/flights/arrival"
+        params = {
+            'airport': airport,
+            'begin': begin,
+            'end': end
+        }
+        
+        try:
+            response = requests.get(url, params=params, auth=self.auth, timeout=30)
+            response.raise_for_status()
+            return response.json() or []
+        except requests.exceptions.RequestException as e:
+            print(f"API Error: {e}")
+            return []
         
     def collect_arrivals(self, start_date: datetime, end_date: datetime) -> pd.DataFrame:
         """
@@ -66,7 +97,7 @@ class OTZFlightCollector:
             print(f"[{interval_count}/{num_intervals}] Fetching {current_start.date()} to {current_end.date()}...", end=" ")
             
             try:
-                flights = self.api.get_arrivals_by_airport(
+                flights = self._get_arrivals(
                     self.AIRPORT_ICAO,
                     begin_ts,
                     end_ts
@@ -78,20 +109,20 @@ class OTZFlightCollector:
                     
                     for flight in flights:
                         all_flights.append({
-                            'icao24': flight.icao24,
-                            'callsign': flight.callsign.strip() if flight.callsign else None,
-                            'departure_airport': flight.estDepartureAirport,
-                            'arrival_airport': flight.estArrivalAirport,
-                            'first_seen': flight.firstSeen,
-                            'last_seen': flight.lastSeen,
-                            'first_seen_datetime': datetime.fromtimestamp(flight.firstSeen) if flight.firstSeen else None,
-                            'last_seen_datetime': datetime.fromtimestamp(flight.lastSeen) if flight.lastSeen else None,
-                            'departure_distance_horiz': flight.estDepartureAirportHorizDistance,
-                            'departure_distance_vert': flight.estDepartureAirportVertDistance,
-                            'arrival_distance_horiz': flight.estArrivalAirportHorizDistance,
-                            'arrival_distance_vert': flight.estArrivalAirportVertDistance,
-                            'departure_candidates': flight.departureAirportCandidatesCount,
-                            'arrival_candidates': flight.arrivalAirportCandidatesCount,
+                            'icao24': flight.get('icao24'),
+                            'callsign': flight.get('callsign', '').strip() if flight.get('callsign') else None,
+                            'departure_airport': flight.get('estDepartureAirport'),
+                            'arrival_airport': flight.get('estArrivalAirport'),
+                            'first_seen': flight.get('firstSeen'),
+                            'last_seen': flight.get('lastSeen'),
+                            'first_seen_datetime': datetime.fromtimestamp(flight['firstSeen']) if flight.get('firstSeen') else None,
+                            'last_seen_datetime': datetime.fromtimestamp(flight['lastSeen']) if flight.get('lastSeen') else None,
+                            'departure_distance_horiz': flight.get('estDepartureAirportHorizDistance'),
+                            'departure_distance_vert': flight.get('estDepartureAirportVertDistance'),
+                            'arrival_distance_horiz': flight.get('estArrivalAirportHorizDistance'),
+                            'arrival_distance_vert': flight.get('estArrivalAirportVertDistance'),
+                            'departure_candidates': flight.get('departureAirportCandidatesCount'),
+                            'arrival_candidates': flight.get('arrivalAirportCandidatesCount'),
                         })
                 else:
                     print("✓ No flights found")
