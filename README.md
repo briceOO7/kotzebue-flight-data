@@ -1,6 +1,12 @@
-# OpenSky Flight Data Collector for Kotzebue, AK (OTZ)
+# Kotzebue Flight Data Collector
 
-This project attempts to collect historical flight arrival data for Kotzebue Airport (OTZ/PAOT) from 2019-2025 using the OpenSky Network API.
+[![GitHub](https://img.shields.io/github/license/briceOO7/kotzebue-flight-data)](LICENSE)
+[![Python](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
+[![GitHub issues](https://img.shields.io/github/issues/briceOO7/kotzebue-flight-data)](https://github.com/briceOO7/kotzebue-flight-data/issues)
+
+Comprehensive flight data collection tools for Kotzebue Airport (OTZ/PAOT) from 2019-2025.
+
+This project provides tools to collect and analyze commercial flight data using Bureau of Transportation Statistics (BTS) data and the OpenSky Network API.
 
 ## ⚠️ Important Limitations
 
@@ -122,3 +128,21 @@ This will give you:
 - The IATA code is "OTZ"
 - Kotzebue is a remote Arctic Circle airport with limited service
 - Most flights are regional carriers with smaller aircraft
+
+## Contributing
+
+Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Repository
+
+https://github.com/briceOO7/kotzebue-flight-data
+
+## Acknowledgments
+
+- [OpenSky Network](https://opensky-network.org/) for flight tracking data
+- [Bureau of Transportation Statistics](https://www.transtats.bts.gov/) for comprehensive aviation data
+- Airlines serving Kotzebue: Alaska Airlines, Bering Air, Ravn Alaska, Grant Aviation
